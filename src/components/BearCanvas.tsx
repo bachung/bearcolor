@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { createImageFromUrl, ImageDataWrapper } from 'utils/image';
-import { expectedG, expectedB, expectedR } from 'components/common';
+import { expectedG, expectedB, expectedR, Bear } from 'components/common';
 
 export type Props = {
+    bear: Bear;
     r?: number;
     g?: number;
     b?: number;
@@ -10,8 +11,7 @@ export type Props = {
 
 const WIDTH = 534;
 const HEIGHT = 534;
-const BEAR = 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f600.png';
-const THRESHOLD = 50;
+const THRESHOLD = 10;
 const MAX_COLOR_CHANGE = 20;
 
 const clamp = (num: number, min: number = -MAX_COLOR_CHANGE, max: number = MAX_COLOR_CHANGE): number => {
@@ -24,7 +24,7 @@ const clamp = (num: number, min: number = -MAX_COLOR_CHANGE, max: number = MAX_C
     }
 };
 
-const BearCanvas = ({r = expectedR, g = expectedG, b = expectedB}: Props) => {
+const BearCanvas = ({bear, r = bear.defaultColor[0], g = bear.defaultColor[1], b = bear.defaultColor[2]}: Props) => {
     const ref = React.useRef(null as null | HTMLCanvasElement);
     React.useEffect(() => {
         const current = ref.current;
@@ -35,7 +35,7 @@ const BearCanvas = ({r = expectedR, g = expectedG, b = expectedB}: Props) => {
             });
             if (context) {
                 (async () => {
-                    const image = await createImageFromUrl(BEAR);
+                    const image = await createImageFromUrl(bear.url);
                     context.clearRect(0, 0, WIDTH, HEIGHT);
                     context.drawImage(image, 0, 0);
 
@@ -61,7 +61,7 @@ const BearCanvas = ({r = expectedR, g = expectedG, b = expectedB}: Props) => {
                 })();
             }
         }
-    }, [r, g, b]);
+    }, [r, g, b, bear]);
 
     return (
         <canvas style={{width: WIDTH, height: HEIGHT}} ref={ref} height={HEIGHT} width={WIDTH} />
