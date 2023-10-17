@@ -1,18 +1,19 @@
 import * as React from 'react';
 import { createImageFromUrl, ImageDataWrapper } from 'utils/image';
-import { expectedG, expectedB, expectedR, Bear } from 'components/common';
+import { Bear } from 'components/common';
 
 export type Props = {
     bear: Bear;
     r?: number;
     g?: number;
     b?: number;
+    onDataChange?: (data: string) => void;
 };
 
 const WIDTH = 534;
 const HEIGHT = 534;
 const THRESHOLD = 10;
-const MAX_COLOR_CHANGE = 20;
+const MAX_COLOR_CHANGE = 50;
 
 const clamp = (num: number, min: number = -MAX_COLOR_CHANGE, max: number = MAX_COLOR_CHANGE): number => {
     if (num < min) {
@@ -24,7 +25,7 @@ const clamp = (num: number, min: number = -MAX_COLOR_CHANGE, max: number = MAX_C
     }
 };
 
-const BearCanvas = ({bear, r = bear.defaultColor[0], g = bear.defaultColor[1], b = bear.defaultColor[2]}: Props) => {
+const BearCanvas = ({bear, r = bear.defaultColor[0], g = bear.defaultColor[1], b = bear.defaultColor[2], onDataChange}: Props) => {
     const ref = React.useRef(null as null | HTMLCanvasElement);
     React.useEffect(() => {
         const current = ref.current;
@@ -46,10 +47,10 @@ const BearCanvas = ({bear, r = bear.defaultColor[0], g = bear.defaultColor[1], b
                     );
                     for (let x = 0; x < WIDTH; x++) {
                         for (let y = 0; y < HEIGHT; y++) {
-                            const [rv, gv, bv, _] = imageData.getRGBA(x, y);
-                            const rDiff = (rv - expectedR);
-                            const gDiff = (gv - expectedG);
-                            const bDiff = (bv - expectedB);
+                            const [rv, gv, bv] = imageData.getRGBA(x, y);
+                            const rDiff = (rv - bear.defaultColor[0]);
+                            const gDiff = (gv - bear.defaultColor[1]);
+                            const bDiff = (bv - bear.defaultColor[2]);
 
                             const totalDiff = Math.abs(rDiff) + Math.abs(gDiff) + Math.abs(bDiff);
                             if (totalDiff <= THRESHOLD) {
@@ -58,10 +59,13 @@ const BearCanvas = ({bear, r = bear.defaultColor[0], g = bear.defaultColor[1], b
                         }
                     }
                     context.putImageData(imageData.imageData, 0, 0);
+                    if (onDataChange) {
+                        onDataChange(canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream'));
+                    }
                 })();
             }
         }
-    }, [r, g, b, bear]);
+    }, [r, g, b, bear, onDataChange]);
 
     return (
         <canvas style={{width: WIDTH, height: HEIGHT}} ref={ref} height={HEIGHT} width={WIDTH} />
