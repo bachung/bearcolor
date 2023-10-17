@@ -60,7 +60,7 @@ const BearCanvas = ({bear, r = bear.defaultColor[0], g = bear.defaultColor[1], b
                     }
                     context.putImageData(imageData.imageData, 0, 0);
                     if (onDataChange) {
-                        onDataChange(canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream'));
+                        onDataChange(canvas.toDataURL('image/png'));
                     }
                 })();
             }
