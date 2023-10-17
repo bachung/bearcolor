@@ -1,11 +1,10 @@
 import * as React from 'react';
 import BearCanvas from 'components/BearCanvas';
 import { parseColor, serializeColor } from 'utils/color';
-import { Bears } from 'components/common';
 import BearPicker from 'components/BearPicker';
+import { getDefaultBearAndColor, setBearAndColorUrl } from 'utils/url';
 
-const DEFAULT_BEAR = Bears[0];
-const DEFAULT_COLOR_HEX = serializeColor(DEFAULT_BEAR.defaultColor[0], DEFAULT_BEAR.defaultColor[1], DEFAULT_BEAR.defaultColor[2]);
+const [DEFAULT_BEAR, DEFAULT_COLOR_HEX] = getDefaultBearAndColor();
 const ICON_LINK = document.querySelector('link[rel~=\'icon\']') as HTMLLinkElement;
 
 const BearColor = () => {
@@ -15,10 +14,15 @@ const BearColor = () => {
     const [r, g, b] = parseColor(color);
 
     React.useEffect(() => {
+        setBearAndColorUrl(bear, color);
+    }, [color, bear]);
+
+    React.useEffect(() => {
         if (ICON_LINK) {
             ICON_LINK.href = data;
         }
     }, [data]);
+
 
     return (
         <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
