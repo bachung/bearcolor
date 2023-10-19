@@ -54,7 +54,6 @@ const BearColor = () => {
                                     e.preventDefault();
                                     setColors(colors.map((c, curIdx) => {
                                         if (curIdx === idx) {
-                                            console.log('setting default to', defaultColors[idx])
                                             return defaultColors[idx];
                                         } else {
                                             return c;
