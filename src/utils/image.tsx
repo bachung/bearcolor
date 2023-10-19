@@ -18,6 +18,37 @@ export const createImageFromUrl = (url: string) => {
     return result;
 }
 
+export type Point = [number, number];
+
+const DIRS = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+] as const;
+
+export class PointSet {
+    private imageData: ImageDataWrapper;
+    private set: Set<number>;
+
+    constructor(imageData: ImageDataWrapper, arr: Point[] = []) {
+        this.imageData = imageData;
+        this.set = new Set(arr.map(this.serialize));
+    }
+
+    add(point: Point) {
+        this.set.add(this.serialize(point));
+    }
+
+    has(point: Point) {
+        return this.set.has(this.serialize(point));
+    }
+
+    private serialize([x, y]: Point) {
+        return y * this.imageData.width + x;
+    }
+}
+
 export class ImageDataWrapper {
     imageData: ImageData;
     width: number;
@@ -52,5 +83,42 @@ export class ImageDataWrapper {
         this.imageData.data[base + 1] = g;
         this.imageData.data[base + 2] = b;
         this.imageData.data[base + 3] = a;
+    }
+
+    getGradientArea(x: number, y: number, tolerance: number = 10, visited: PointSet = new PointSet(this)): Point[] {
+        const start: Point = [x, y];
+        const stack: Point[] = [start];
+
+        const result: Point[] = [];
+
+        let cur: undefined | Point;
+        while ((cur = stack.pop()) !== undefined) {
+            result.push(cur);
+            const [x, y] = cur;
+            const [r, g, b] = this.getRGBA(x, y);
+
+            DIRS.forEach(([dx, dy]) => {
+                const point: Point = [x + dx, y + dy];
+                const [nextX, nextY] = point;
+                if (nextX < 0 || nextX >= this.width || nextY < 0 || nextY >= this.height) return;
+                if (visited.has(point)) return;
+
+                const [rx, gx, bx, a] = this.getRGBA(nextX, nextY);
+
+                // skip all transparent
+                if (a === 0) return;
+
+                const rDiff = Math.abs(rx - r);
+                const gDiff = Math.abs(gx - g);
+                const bDiff = Math.abs(bx - b);
+                const totalDiff = rDiff + gDiff + bDiff;
+                if (totalDiff <= tolerance) {
+                    visited.add(point);
+                    stack.push(point);
+                }
+            });
+        }
+
+        return result;
     }
 }
