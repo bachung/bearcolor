@@ -1,4 +1,7 @@
 
+import rgb2hsl from "pure-color/convert/rgb2hsl";
+import hsl2rgb from "pure-color/convert/hsl2rgb";
+
 const mapping: Record<string, Promise<HTMLImageElement>> = {};
 
 export const createImageFromUrl = (url: string) => {
@@ -53,11 +56,23 @@ export class ImageDataWrapper {
     imageData: ImageData;
     width: number;
     height: number;
+    hslCache: [number, number, number, number][][];
 
     constructor(imageData: ImageData) {
         this.imageData = imageData;
         this.width = imageData.width;
         this.height = imageData.height;
+        this.hslCache = [];
+
+        for (let x = 0; x < this.width; x++) {
+            this.hslCache.push([]);
+            const cur = this.hslCache[x];
+            for (let y = 0; y < this.height; y++) {
+                const [r, g, b, a] = this.getRGBA(x, y);
+                const hsl = rgb2hsl([r, g, b]);
+                cur.push(hsl.concat([a]) as [number, number, number, number]);
+            }
+        }
     }
 
     getRGBA(x: number, y: number): [number, number, number, number] {
@@ -69,6 +84,10 @@ export class ImageDataWrapper {
             this.imageData.data[base + 2],
             this.imageData.data[base + 3],
         ];
+    }
+
+    getHSLA(x: number, y: number): [number, number, number, number] {
+        return this.hslCache[x][y];
     }
 
     setRGB(x: number, y: number, r: number, g: number, b: number, a: number = 255) {
@@ -85,17 +104,23 @@ export class ImageDataWrapper {
         this.imageData.data[base + 3] = a;
     }
 
+    setHSL(x: number, y: number, h: number, s: number, l: number) {
+        const [r, g, b] = hsl2rgb([h, s, l]);
+        this.setRGB(x, y, Math.floor(r), Math.floor(g), Math.floor(b));
+    }
+
     getGradientArea(x: number, y: number, tolerance: number = 10, visited: PointSet = new PointSet(this)): Point[] {
         const start: Point = [x, y];
         const stack: Point[] = [start];
 
         const result: Point[] = [];
+        visited.add(start);
 
         let cur: undefined | Point;
         while ((cur = stack.pop()) !== undefined) {
             result.push(cur);
             const [x, y] = cur;
-            const [r, g, b] = this.getRGBA(x, y);
+            const [r, g, b] = this.getHSLA(x, y);
 
             DIRS.forEach(([dx, dy]) => {
                 const point: Point = [x + dx, y + dy];
@@ -103,9 +128,8 @@ export class ImageDataWrapper {
                 if (nextX < 0 || nextX >= this.width || nextY < 0 || nextY >= this.height) return;
                 if (visited.has(point)) return;
 
-                const [rx, gx, bx, a] = this.getRGBA(nextX, nextY);
+                const [rx, gx, bx, a] = this.getHSLA(nextX, nextY);
 
-                // skip all transparent
                 if (a === 0) return;
 
                 const rDiff = Math.abs(rx - r);

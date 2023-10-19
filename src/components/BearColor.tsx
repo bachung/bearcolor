@@ -1,9 +1,12 @@
 import * as React from 'react';
 import BearCanvas from 'components/BearCanvas';
-import { parseColor, serializeColor } from 'utils/color';
+import { parseColor } from 'utils/color';
 import BearPicker from 'components/BearPicker';
 import { getDefaultBearAndColor } from 'utils/url';
 import { PreloadedBear, preload } from 'components/common';
+import rgb2hsl from 'pure-color/convert/rgb2hsl';
+import hsl2rgb from 'pure-color/convert/hsl2rgb';
+import rgb2hex from 'pure-color/convert/rgb2hex';
 
 const [DEFAULT_BEAR] = getDefaultBearAndColor();
 const ICON_LINK = document.querySelector('link[rel~=\'icon\']') as HTMLLinkElement;
@@ -20,8 +23,8 @@ const BearColor = () => {
         (async () => {
             const preloaded = await preload(bear);
             setPreloadedBear(preloaded);
-            setColors(preloaded.gradients.map(g => g.color));
-            setDefaultColors(preloaded.gradients.map(g => g.color));
+            setColors(preloaded.gradients.map(g => hsl2rgb(g.color)));
+            setDefaultColors(preloaded.gradients.map(g => hsl2rgb(g.color)));
         })();
     }, [bear]);
 
@@ -36,7 +39,7 @@ const BearColor = () => {
         <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
             <div style={{display: 'flex', flexDirection: 'row', alignItems: 'start', gap: 16}}>
                 <div style={{display: 'flex', flexDirection: 'column', height: '100%', gap: 8, alignItems: 'start'}}>
-                    {preloadedBear && <BearCanvas colors={colors} bear={preloadedBear} onDataChange={setData} />}
+                    {preloadedBear && <BearCanvas colors={colors.map(rgb2hsl)} bear={preloadedBear} onDataChange={setData} />}
                     {
                         colors.map((color, idx) => (
                             <div style={{display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center'}} key={idx}>
@@ -49,7 +52,7 @@ const BearColor = () => {
                                             return c;
                                         }
                                     }));
-                                }} value={serializeColor(color[0], color[1], color[2])} />
+                                }} value={rgb2hex(color)} />
                                 <button onClick={(e) => {
                                     e.preventDefault();
                                     setColors(colors.map((c, curIdx) => {

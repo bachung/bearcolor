@@ -38,7 +38,7 @@ const BearCanvas = ({bear: {bear, image, gradients}, colors = [], onDataChange, 
                             const diffG = gv - color[1];
                             const diffB = bv - color[2];
 
-                            imageData.setRGB(x, y, r + diffR, g + diffG, b + diffB);
+                            imageData.setHSL(x, y, r + diffR, g + diffG, b + diffB);
                         })
                     }
                 })

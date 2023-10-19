@@ -1,7 +1,5 @@
 import { ImageDataWrapper, Point, PointSet, createImageFromUrl } from "utils/image";
 
-const [expectedR, expectedG, expectedB] = [133, 91, 82];
-
 export type Bear = {
     name: string,
     url: string,
@@ -51,7 +49,7 @@ export const Bears: Bear[] = [
     {name: 'Sweat Smile', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f605.png'},
     {name: 'Upside Down', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f643.png'},
     {name: 'Fearful', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f628.png'},
-    {name: 'Evil', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f608.png', defaultThreshold: 50}
+    {name: 'Evil', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f608.png'}
 ];
 
 export const preload = async (bear: Bear): Promise<PreloadedBear> => {
@@ -62,7 +60,9 @@ export const preload = async (bear: Bear): Promise<PreloadedBear> => {
     const canvas = document.createElement('canvas') as HTMLCanvasElement;
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext('2d', {
+        willReadFrequently: true
+    });
 
     if (context == null) {
         throw new Error("Can't continue with missing context");
@@ -73,27 +73,24 @@ export const preload = async (bear: Bear): Promise<PreloadedBear> => {
 
     const imageData = new ImageDataWrapper(context.getImageData(0, 0, width, height));
 
-    const serializeColor = (r: number, g: number, b: number) => r * 256 * 256 + g * 256 + b;
-    const deserializeColor = (serialized: number): [number, number, number] => [
-        Math.floor(Math.floor(serialized / 256) / 256) % 256,
-        Math.floor(serialized / 256) % 256,
-        serialized % 256,
-    ];
+    const serializeColor = (r: number, g: number, b: number) => `${r},${g},${b}`
+    const deserializeColor = (serialized: string): [number, number, number] => {
+        return serialized.split(",").map(a => parseInt(a)) as [number, number, number];
+    };
     const getAreaColor = (area: PointWithColor[]) => {
         const colorCounts = area.reduce((colorCounts, [_, curR, curG, curB]) => {
-            const asNumber = serializeColor(curR, curG, curB);
-
-            colorCounts[asNumber] = colorCounts[asNumber] ?? 0;
-            colorCounts[asNumber] += 1;
+            const serialized = serializeColor(curR, curG, curB);
+            colorCounts[serialized] = colorCounts[serialized] ?? 0;
+            colorCounts[serialized] += 1;
             return colorCounts;
         }, {} as Record<string, number>);
         
         const mostCommonColor = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a])[0];
 
-        return deserializeColor(+mostCommonColor);
+        return deserializeColor(mostCommonColor);
 
     }
-    const threshold = bear.defaultThreshold ?? 5;
+    const threshold = bear.defaultThreshold ?? 10;
     const areas: Point[][] = [];
     const visited = new PointSet(imageData);
     for (let x = 0; x < width; x++) {
@@ -109,7 +106,7 @@ export const preload = async (bear: Bear): Promise<PreloadedBear> => {
     }
     const areasWithColors: PointWithColor[][] = areas.map(gradient => gradient.map(point => {
         const [x, y] = point;
-        const [r, g, b] = imageData.getRGBA(x, y);
+        const [r, g, b] = imageData.getHSLA(x, y);
         return [point, r, g, b];
     }))
     const areasWithSameColor = areasWithColors.reduce((result, gradient) => {
