@@ -7,6 +7,7 @@ import { PreloadedBear, preload } from 'components/common';
 import rgb2hsl from 'pure-color/convert/rgb2hsl';
 import hsl2rgb from 'pure-color/convert/hsl2rgb';
 import rgb2hex from 'pure-color/convert/rgb2hex';
+import hex2rgb from 'pure-color/convert/hex2rgb';
 
 const [DEFAULT_BEAR] = getDefaultBearAndColor();
 const ICON_LINK = document.querySelector('link[rel~=\'icon\']') as HTMLLinkElement;
@@ -63,6 +64,23 @@ const BearColor = () => {
                                         }
                                     }));
                                 }}>Reset to Default Color</button>
+                                <button onClick={(e) => {
+                                    navigator.clipboard.writeText(rgb2hex(color));
+                                }}>Copy to clipboard</button>
+                                <button onClick={async (e) => {
+                                    const clipboardText = await navigator.clipboard.readText();
+                                    setColors(colors.map((c, curIdx) => {
+                                        if (curIdx === idx) {
+                                            try {
+                                                return parseColor(clipboardText);
+                                            } catch (ex) {
+                                                return c;
+                                            }
+                                        } else {
+                                            return c;
+                                        }
+                                    }));
+                                }}>Paste</button>
                             </div>
                         ))
                     }

@@ -15,3 +15,9 @@ declare module 'pure-color/convert/rgb2hex' {
 
     export = rgb2hex;
 }
+
+declare module 'pure-color/convert/hex2rgb' {
+    function hex2rgb(string): [number, number, number];
+
+    export = hex2rgb;
+}
