@@ -49,7 +49,7 @@ export const Bears: Bear[] = [
     {name: 'Sweat Smile', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f605.png'},
     {name: 'Upside Down', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f643.png'},
     {name: 'Fearful', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f628.png'},
-    {name: 'Evil', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f608.png'}
+    {name: 'Evil', url: 'https://www.gstatic.com/android/keyboard/emojikitchen/20210831/u1f43b/u1f43b_u1f608.png', defaultThreshold: 40}
 ];
 
 export const preload = async (bear: Bear): Promise<PreloadedBear> => {
