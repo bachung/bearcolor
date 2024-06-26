@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+message Emoji {
+    string emoji = 1;
+    uint32 id = 2;
+}
+
+message EmojiPairings {
+    uint32 id = 1;
+    repeated uint32 pairings = 2;
+}
+
+message EmojiCategory {
+    string name = 1;
+    uint32 startId = 2;
+}
+
+message EmojiResponse {
+  repeated Emoji emojis = 1;
+  repeated EmojiPairings pairings = 2;
+  repeated EmojiCategory categories = 3;
+}
