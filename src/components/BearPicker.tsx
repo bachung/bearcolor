@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Bear, Bears } from "components/common";
+import { Bear } from "components/common";
 import { getEmojiRepository } from "emoji";
 
 type Props = {
