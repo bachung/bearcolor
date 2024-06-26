@@ -6,6 +6,8 @@ const PAIR_URL =
 const TENOR_API_KEY = "AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ";
 const API_URL_PREFIX = `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=`;
 
+const LOCAL_STORAGE_CACHE_KEY = "EMOJI_URL_CACHE";
+
 const getEmojiUrl = (emoji: string) => {
   const codePoint = emoji.codePointAt(0)?.toString(16);
   if (codePoint == null) {
@@ -16,6 +18,22 @@ const getEmojiUrl = (emoji: string) => {
 
 const EMOJI_PAIRING_CACHE: Record<string, Promise<string | null> | undefined> =
   {};
+
+const localStorageItem =
+  window.localStorage.getItem(LOCAL_STORAGE_CACHE_KEY) ?? "{}";
+let localStorageParsed = JSON.parse(localStorageItem) as Record<string, string>;
+
+const getEmojiLocalStorage = (query: string) => {
+  return localStorageParsed[query] ?? null;
+};
+
+const setLocalStorage = (query: string, url: string) => {
+  localStorageParsed[query] = url;
+  window.localStorage.setItem(
+    LOCAL_STORAGE_CACHE_KEY,
+    JSON.stringify(localStorageParsed)
+  );
+};
 
 class EmojiPairing {
   emoji1: string;
@@ -31,20 +49,28 @@ class EmojiPairing {
     if (EMOJI_PAIRING_CACHE[q]) {
       return await EMOJI_PAIRING_CACHE[q];
     } else {
-      EMOJI_PAIRING_CACHE[q] = fetch(API_URL_PREFIX + q)
-        .then((resp) => resp.json())
-        .then((obj) => {
-          const results = obj?.results;
-          if (!Array.isArray(results) || results.length === 0) {
-            return null;
-          }
-          const maybeResult = results[0]?.media_formats?.png_transparent?.url;
-          if (maybeResult == null) {
-            return null;
-          }
-          return maybeResult as string;
-        });
-      return await EMOJI_PAIRING_CACHE[q];
+      const maybeLocalStorage = getEmojiLocalStorage(q);
+      EMOJI_PAIRING_CACHE[q] = maybeLocalStorage
+        ? Promise.resolve(maybeLocalStorage)
+        : fetch(API_URL_PREFIX + q)
+            .then((resp) => resp.json())
+            .then((obj) => {
+              const results = obj?.results;
+              if (!Array.isArray(results) || results.length === 0) {
+                return null;
+              }
+              const maybeResult =
+                results[0]?.media_formats?.png_transparent?.url;
+              if (maybeResult == null) {
+                return null;
+              }
+              return maybeResult as string;
+            });
+      const url = await EMOJI_PAIRING_CACHE[q];
+      if (getEmojiLocalStorage(q) == null && url != null) {
+        setLocalStorage(q, url);
+      }
+      return url;
     }
   }
 }
@@ -117,7 +143,6 @@ class Emoji {
         acc[this.repository.getById(cur[0]).getEmoji()] = cur[1];
         return acc;
       }, {} as Record<string, EmojiPairing>);
-    console.log(this.pairingCache);
     return this.pairingCache;
   }
 }
@@ -148,8 +173,6 @@ class EmojiRepository {
     if (!categories || !emojis || !pairings) {
       throw new Error("Unable to parse emoji response");
     }
-
-    console.log(emojis, categories, pairings);
 
     const reversePairings = pairings
       .flatMap(({ id, pairings }) => pairings.map((id2) => [id2, id]))
