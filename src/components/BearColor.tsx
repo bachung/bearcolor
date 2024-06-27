@@ -32,9 +32,11 @@ const BearColor = () => {
   React.useEffect(() => {
     (async () => {
       const preloaded = await preload(bear);
-      setPreloadedBear(preloaded);
-      setColorsTransition(preloaded.gradients.map((g) => hsl2rgb(g.color)));
-      setDefaultColors(preloaded.gradients.map((g) => hsl2rgb(g.color)));
+      startColorTransition(() => {
+        setPreloadedBear(preloaded);
+        setColors(preloaded.gradients.map((g) => hsl2rgb(g.color)));
+        setDefaultColors(preloaded.gradients.map((g) => hsl2rgb(g.color)));
+      });
     })();
   }, [bear]);
 
