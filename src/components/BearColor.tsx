@@ -3,10 +3,17 @@ import BearCanvas from "components/BearCanvas";
 import { parseColor } from "utils/color";
 import BearPicker from "components/BearPicker";
 import { getDefaultBearAndColor } from "utils/url";
-import { PreloadedBear, preload } from "components/common";
+import {
+  Gradient,
+  PreloadedBear,
+  getGradients,
+  getImageData,
+  preload,
+} from "components/common";
 import rgb2hsl from "pure-color/convert/rgb2hsl";
 import hsl2rgb from "pure-color/convert/hsl2rgb";
 import rgb2hex from "pure-color/convert/rgb2hex";
+import { ImageDataWrapper } from "utils/image";
 
 const [DEFAULT_BEAR] = getDefaultBearAndColor();
 const ICON_LINK = document.querySelector(
@@ -24,21 +31,37 @@ const BearColor = () => {
   const setColorsTransition = (colors: [number, number, number][]) => {
     startColorTransition(() => setColors(colors));
   };
+  const [tolerance, setTolerance] = React.useState(10);
 
   const [preloadedBear, setPreloadedBear] = React.useState(
     null as null | PreloadedBear
   );
 
+  const gradients = React.useMemo(() => {
+    if (preloadedBear != null) {
+      const gradients = getGradients(preloadedBear.imageData, tolerance);
+
+      return gradients;
+    } else {
+      return null;
+    }
+  }, [preloadedBear, tolerance]);
   React.useEffect(() => {
     (async () => {
       const preloaded = await preload(bear);
       startColorTransition(() => {
         setPreloadedBear(preloaded);
-        setColors(preloaded.gradients.map((g) => hsl2rgb(g.color)));
-        setDefaultColors(preloaded.gradients.map((g) => hsl2rgb(g.color)));
+        setTolerance(10);
       });
     })();
   }, [bear]);
+
+  React.useEffect(() => {
+    if (gradients != null) {
+      setColors(gradients.map((g) => hsl2rgb(g.color)));
+      setDefaultColors(gradients.map((g) => hsl2rgb(g.color)));
+    }
+  }, [gradients]);
 
   React.useEffect(() => {
     if (ICON_LINK) {
@@ -70,8 +93,27 @@ const BearColor = () => {
               colors={colors.map(rgb2hsl)}
               bear={preloadedBear}
               onDataChange={setData}
+              gradients={gradients ?? []}
             />
           )}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 8,
+              alignItems: "center",
+            }}
+          >
+            Max color similarity{" "}
+            <input
+              type="number"
+              value={tolerance}
+              onChange={(e) =>
+                startColorTransition(() => setTolerance(e.target.valueAsNumber))
+              }
+            />
+          </div>
+
           {colors.map((color, idx) => (
             <div
               style={{

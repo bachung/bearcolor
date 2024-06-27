@@ -1,48 +1,35 @@
 import * as React from "react";
-import { ImageDataWrapper } from "utils/image";
-import { PreloadedBear } from "components/common";
+import { Gradient, PreloadedBear } from "components/common";
 
 export type Props = {
   bear: PreloadedBear;
   colors?: [number, number, number][];
   showAreas?: boolean;
   onDataChange?: (data: string) => void;
+  gradients: Gradient[];
 };
 
 const WIDTH = 534;
 const HEIGHT = 534;
 
 const BearCanvas = ({
-  bear: { bear, image, gradients },
+  bear: { imageData },
   colors = [],
   onDataChange,
   showAreas = false,
+  gradients,
 }: Props) => {
   const [canvas, setCanvas] = React.useState(null as null | HTMLCanvasElement);
   const context = React.useMemo(() => {
     if (canvas instanceof HTMLCanvasElement) {
       return canvas.getContext("2d", {
-        willReadFrequently: true,
+        willReadFrequently: false,
       });
     }
     return null;
   }, [canvas]);
-  const imageDataWrapper = React.useMemo((): ImageDataWrapper | null => {
-    if (context) {
-      context.clearRect(0, 0, WIDTH, HEIGHT);
-      context.drawImage(image, 0, 0);
-
-      return new ImageDataWrapper(
-        context.getImageData(0, 0, WIDTH, HEIGHT, {
-          colorSpace: "srgb",
-        })
-      );
-    }
-    return null;
-  }, [image, context]);
   React.useEffect(() => {
-    if (context && imageDataWrapper) {
-      const imageData = imageDataWrapper;
+    if (context && imageData) {
       gradients.forEach(({ points, color }, idx) => {
         if (idx < colors.length) {
           const [r, g, b] = colors[idx];
@@ -60,7 +47,7 @@ const BearCanvas = ({
         onDataChange(canvas.toDataURL("image/png"));
       }
     }
-  }, [canvas, colors, context, gradients, imageDataWrapper, onDataChange]);
+  }, [canvas, colors, context, gradients, imageData, onDataChange]);
 
   return (
     <canvas
