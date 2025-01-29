@@ -1,7 +1,7 @@
 import { EmojiResponse, decodeEmojiResponse } from "emoji/proto/emoji";
 
 const PAIR_URL =
-  "https://www.google.com/logos/fnbx/emoji_kitchen/emoji_kitchen_pairs.5.pb";
+  "https://www.google.com/logos/fnbx/emoji_kitchen/emoji_kitchen_pairs.7.pb";
 
 const TENOR_API_KEY = "AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ";
 const API_URL_PREFIX = `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=`;
