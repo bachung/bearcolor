@@ -97,6 +97,7 @@ const PopoverColorPicker = ({ color, setColor }: Props) => {
           height: 24,
           backgroundColor: color,
           border: "1px black solid",
+          cursor: "pointer",
         }}
         onClick={() => setOpen(true)}
       />
