@@ -4,16 +4,14 @@ import { parseColor } from "utils/color";
 import BearPicker from "components/BearPicker";
 import { getDefaultBearAndColor } from "utils/url";
 import {
-  Gradient,
   PreloadedBear,
   getGradients,
-  getImageData,
   preload,
 } from "components/common";
 import rgb2hsl from "pure-color/convert/rgb2hsl";
 import hsl2rgb from "pure-color/convert/hsl2rgb";
 import rgb2hex from "pure-color/convert/rgb2hex";
-import { ImageDataWrapper } from "utils/image";
+import PopoverColorPicker from "components/PopoverColorPicker";
 
 const [DEFAULT_BEAR] = getDefaultBearAndColor();
 const ICON_LINK = document.querySelector(
@@ -125,21 +123,17 @@ const BearColor = () => {
               key={idx}
             >
               <div>Set Color</div>
-              <input
-                type="color"
-                onChange={(e) => {
-                  setColorsTransition(
-                    colors.map((c, curIdx) => {
-                      if (curIdx === idx) {
-                        return parseColor(e.target.value);
-                      } else {
-                        return c;
-                      }
-                    })
-                  );
-                }}
-                value={rgb2hex(color)}
-              />
+              <PopoverColorPicker color={rgb2hex(color)} setColor={(color) => {
+                setColorsTransition(
+                  colors.map((c, curIdx) => {
+                    if (curIdx === idx) {
+                      return parseColor(color);
+                    } else {
+                      return c;
+                    }
+                  })
+                );
+              }} />
               <button
                 onClick={(e) => {
                   e.preventDefault();
