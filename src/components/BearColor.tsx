@@ -12,6 +12,7 @@ import rgb2hsl from "pure-color/convert/rgb2hsl";
 import hsl2rgb from "pure-color/convert/hsl2rgb";
 import rgb2hex from "pure-color/convert/rgb2hex";
 import PopoverColorPicker from "components/PopoverColorPicker";
+import { useIframeContext } from "./IFrameContext";
 
 const [DEFAULT_BEAR] = getDefaultBearAndColor();
 const ICON_LINK = document.querySelector(
@@ -19,6 +20,7 @@ const ICON_LINK = document.querySelector(
 ) as HTMLLinkElement;
 
 const BearColor = () => {
+  const {inIframe, sendMessage} = useIframeContext();
   const [bear, setBear] = React.useState(DEFAULT_BEAR);
   const [data, setData] = React.useState("");
   const [defaultColors, setDefaultColors] = React.useState(
@@ -65,7 +67,13 @@ const BearColor = () => {
     if (ICON_LINK) {
       ICON_LINK.href = data;
     }
-  }, [data]);
+    if (inIframe) {
+      sendMessage({
+        type: 'SET_DATA',
+        data: data,
+      });
+    }
+  }, [data, inIframe, sendMessage]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>

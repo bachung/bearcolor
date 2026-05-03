@@ -1,7 +1,7 @@
 import { EmojiResponse, decodeEmojiResponse } from "emoji/proto/emoji";
 
 const PAIR_URL =
-  "https://www.google.com/logos/fnbx/emoji_kitchen/emoji_kitchen_pairs.10.pb";
+  "https://www.google.com/logos/fnbx/emoji_kitchen/emoji_kitchen_pairs.12.pb";
 
 const TENOR_API_KEY = "AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ";
 const API_URL_PREFIX = `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=`;
@@ -53,19 +53,19 @@ class EmojiPairing {
       EMOJI_PAIRING_CACHE[q] = maybeLocalStorage
         ? Promise.resolve(maybeLocalStorage)
         : fetch(API_URL_PREFIX + q)
-            .then((resp) => resp.json())
-            .then((obj) => {
-              const results = obj?.results;
-              if (!Array.isArray(results) || results.length === 0) {
-                return null;
-              }
-              const maybeResult =
-                results[0]?.media_formats?.png_transparent?.url;
-              if (maybeResult == null) {
-                return null;
-              }
-              return maybeResult as string;
-            });
+          .then((resp) => resp.json())
+          .then((obj) => {
+            const results = obj?.results;
+            if (!Array.isArray(results) || results.length === 0) {
+              return null;
+            }
+            const maybeResult =
+              results[0]?.media_formats?.png_transparent?.url;
+            if (maybeResult == null) {
+              return null;
+            }
+            return maybeResult as string;
+          });
       const url = await EMOJI_PAIRING_CACHE[q];
       if (getEmojiLocalStorage(q) == null && url != null) {
         setLocalStorage(q, url);
